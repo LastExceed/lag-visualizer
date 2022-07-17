@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 use packet::{ether, ip, Packet, tcp};
 use crate::display::Model;
 
-pub const XIV_IP: [u8; 4] = [195, 82, 50, 46];
+pub const PEER_IP: [u8; 4] = [80,239,145,83];//[195, 82, 50, 46];
 
 pub struct OutRecord {
 	pub timestamp: Instant,
@@ -13,7 +13,7 @@ pub struct OutRecord {
 
 pub fn begin_loop_capture(model_arc: Arc<Mutex<Model>>) {
 	let mut device_list = pcap::Device::list().unwrap();
-	let device = device_list.remove(3);
+	let device = device_list.remove(5);
 
 	let mut cap = pcap::Capture::from_device(device)
 		.unwrap()
@@ -41,7 +41,7 @@ pub fn begin_loop_capture(model_arc: Arc<Mutex<Model>>) {
 			tcp_packet
 		} else { continue; };
 
-		if ip_packet.source().octets() == XIV_IP {
+		if ip_packet.source().octets() == PEER_IP {
 			let ack = tcp_packet.acknowledgment();
 
 			for i in 0..model.sent.len() {//todo
@@ -64,7 +64,7 @@ pub fn begin_loop_capture(model_arc: Arc<Mutex<Model>>) {
 				}
 				break;
 			}
-		} else if ip_packet.destination().octets() == XIV_IP {
+		} else if ip_packet.destination().octets() == PEER_IP {
 			if !tcp_packet.flags().contains(tcp::flag::PSH) { continue; }
 			let new_entry = OutRecord {
 				timestamp: now,
